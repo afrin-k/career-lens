@@ -39,9 +39,6 @@ const HeroSection = () => {
                 <Link href='/dashboard'>
                     <Button size='lg' className="px-8">Get Started</Button>
                 </Link>
-                <Link href='/dashboard'>
-                    <Button variant='outline' size='lg' className="px-8">Get Started</Button>
-                </Link>
             </div>
             <div className='hero-image-wrapper mt-5 md:mt-0'>
                 <div ref={imageRef} className='hero-image'>

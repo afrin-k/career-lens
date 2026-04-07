@@ -61,3 +61,17 @@ export const coverLetterSchema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
   jobDescription: z.string().min(1, "Job description is required"),
 });
+
+export const voiceSchema = z.object({
+  role: z.string().min(1, "Job role is required"),
+  level: z.enum(["Entry", "Mid", "Senior", "Lead"], {
+    error_map: () => ({ message: "Please select an experience level" }),
+  }),
+  techstack: z.string().min(1, "Tech stack is required"),
+  type: z.enum(["Technical", "Behavioral", "Mixed"], {
+    error_map: () => ({ message: "Please select an interview type" }),
+  }),
+  amount: z.string().transform((val) => parseInt(val, 10)).pipe(
+    z.number().min(3, "Minimum 3 questions").max(15, "Maximum 10 questions")
+  ),
+});

@@ -1,6 +1,5 @@
 import { faqs } from '@/data/faqs'
 import React from 'react'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Button } from './ui/button'

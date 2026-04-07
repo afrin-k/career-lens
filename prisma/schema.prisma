@@ -12,102 +12,138 @@ datasource db {
 }
 
 model User {
-  id              String  @id @default(uuid())
-  clerkUserId     String  @unique // clerk user id
-  email           String  @unique
-  name            String?
-  imageUrl        String?
-  industry        String? // combined industry - subindustry (eg, "tech-software-development")
-  
-  industryInsight IndustryInsight?  @relation(fields: [industry], references: [industry])
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  id          String  @id @default(uuid())
+  clerkUserId String  @unique // clerk user id
+  email       String  @unique
+  name        String?
+  imageUrl    String?
+  industry    String? // combined industry - subindustry (eg, "tech-software-development")
+
+  industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // profile fields
-  bio             String?
-  experience      Int?
-  skills          String[]
+  bio        String?
+  experience Int?
+  skills     String[]
 
   assessments     Assessment[]
   resume          Resume?
   coverLetter     CoverLetter[]
+  voiceInterviews VoiceInterview[]
 }
 
-model IndustryInsight{
-  id              String  @id @default(cuid())
-  industry        String  @unique // the industry this data belongs to (eg, "tech-software-development")
-  
-  users           User[] // users in this industry
-  
+model IndustryInsight {
+  id       String @id @default(cuid())
+  industry String @unique // the industry this data belongs to (eg, "tech-software-development")
+
+  users User[] // users in this industry
+
   // salary data 
-  salaryRanges    Json[] // array of {role: string, min: float, max: float, median: float, location: string?}
-  
+  salaryRanges Json[] // array of {role: string, min: float, max: float, median: float, location: string?}
+
   // industry trends
-  growthRate      Float // industry growth rate 
-  demandLevel     DemandLevel // "High", "Medium", "Low"
-  topSkills       String[] // most in-demand skills
+  growthRate  Float // industry growth rate 
+  demandLevel DemandLevel // "High", "Medium", "Low"
+  topSkills   String[] // most in-demand skills
 
   // market conditions 
-  marketOutlook   MarketOutlook // "positive", "neutral", "negative"
-  keyTrends       String[] // array of current industry trends 
+  marketOutlook MarketOutlook // "positive", "neutral", "negative"
+  keyTrends     String[] // array of current industry trends 
 
   // learning suggestions 
   recommendedSkills String[] // skills recommended for the industry
 
-  lastUpdated     DateTime  @default(now())
-  nextUpdate      DateTime  // scheduled update DateTime
+  lastUpdated DateTime @default(now())
+  nextUpdate  DateTime // scheduled update DateTime
 
   @@index([industry])
 }
 
-enum DemandLevel{
-  HIGH 
-  MEDIUM 
-  LOW 
+enum DemandLevel {
+  HIGH
+  MEDIUM
+  LOW
 }
 
-enum MarketOutlook{
-  POSITIVE 
-  NEUTRAL 
-  NEGATIVE 
+enum MarketOutlook {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
 }
 
-model Assessment{
-  id              String  @id @default(cuid())
-  userId          String  
-  user            User    @relation(fields: [userId], references:[id])
-  quizScore       Float   // overall quiz score 
-  questions       Json[]  // array of {question, answer, userAnswer, isCorrect}
-  category        String  // "technical", "behavioral", etc
-  improvementTip  String? // ai-generated improvement tip 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model Assessment {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  quizScore      Float // overall quiz score 
+  questions      Json[] // array of {question, answer, userAnswer, isCorrect}
+  category       String // "technical", "behavioral", etc
+  improvementTip String? // ai-generated improvement tip 
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([userId])
 }
 
-model Resume{
-  id              String  @id @default(cuid())
-  userId          String  @unique // one resume per user 
-  user            User    @relation(fields: [userId], references: [id])
-  content         String  @db.Text // markdown content
-  atsScore        Float?
-  feedback        String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String   @unique // one resume per user 
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text // markdown content
+  atsScore  Float?
+  feedback  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model CoverLetter{
-  id              String  @id @default(cuid())
-  userId          String  @unique // one resume per user 
-  user            User    @relation(fields: [userId], references: [id])
-  content         String  @db.Text // markdown content
-  jobDescription  String? 
-  companyName     String // name of the company applying to
-  jobTitle        String // position applying for
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model CoverLetter {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  content        String   @db.Text // markdown content
+  jobDescription String?
+  companyName    String // name of the company applying to
+  jobTitle       String // position applying for
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([userId])
+}
+
+model VoiceInterview {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Setup fields
+  role      String
+  level     String
+  techstack String[]
+  type      String // technical, behavioral, etc.
+
+  // Content fields
+  questions  String[] // The generated questions from Gemini
+  transcript Json[] // Array of {role: "user" | "assistant", content: string}
+
+  // Feedback & Scoring
+  feedback       String? @db.Text
+  score          Float? // Overall performance score
+  categoryScores Json? // { communication: 8, technical: 7, etc }
+
+  status     InterviewStatus @default(COMPLETED)
+  coverImage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum InterviewStatus {
+  STARTED
+  COMPLETED
+  FAILED
 }

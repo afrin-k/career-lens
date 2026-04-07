@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isBefore } from 'date-fns';
 import { BrainIcon, BriefcaseIcon, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -42,11 +42,14 @@ const DashboardView = ({insights}) => {
     }
   };
 
-  const OutlookIcon = getMarketOutlookInfo(insights.marketOutlook).icon;
-  const outlookColor = getMarketOutlookInfo(insights.marketOutlook).icon;
+  const outlookInfo = getMarketOutlookInfo(insights.marketOutlook);
+  const OutlookIcon = outlookInfo.icon;
+  const outlookColor = outlookInfo.color;
 
-  const lastUpdatedDate = format(new Date(insights.lastUpdated),"dd/mm/yyyy");
+  const lastUpdatedDate = format(new Date(insights.lastUpdated),"dd/MM/yyyy");
   const nextUpdateDistance = formatDistanceToNow(new Date(insights.nextUpdate),{addSuffix: true});
+  const nextUpdateDate = new Date(insights.nextUpdate);
+  const isOverdue = isBefore(nextUpdateDate, new Date());
 
   return (
     <div className='space-y-6'>
@@ -62,8 +65,9 @@ const DashboardView = ({insights}) => {
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>{insights.marketOutlook}</div>
-                <p className='text-xs text-muted-foreground'>
-                    Next update {nextUpdateDistance}
+                <p className={`text-xs ${isOverdue ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  Next Update : {isOverdue ? 'Overdue ' : ' '} 
+                  {formatDistanceToNow(nextUpdateDate, { addSuffix: true })}
                 </p>
               </CardContent>
             </Card>

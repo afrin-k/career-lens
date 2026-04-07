@@ -16,6 +16,10 @@ const Quiz = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState([]);
     const [showExplanation, setShowExplanation] = useState(false);
+    // new feature
+    const [numQuestions, setNumQuestions] = useState(5);
+    const [topic, setTopic] = useState("");
+    const [difficulty, setDifficulty] = useState("Medium");
 
     const { 
         loading: generatingQuiz,
@@ -78,7 +82,7 @@ const Quiz = () => {
         setCurrentQuestion(0);
         setAnswers([]);
         setShowExplanation(false);
-        generateQuizFn();
+        generateQuizFn(numQuestions, topic, difficulty);
         setResultData(null);
     }
 
@@ -95,24 +99,91 @@ const Quiz = () => {
         )
     }
   
-    if (!quizData){
-        return(
+    // if (!quizData){
+    //     return(
+    //         <Card className="mx-2">
+    //             <CardHeader>
+    //                 <CardTitle>Ready to test your knowledge</CardTitle>
+    //             </CardHeader>
+    //             <CardContent>
+    //                 <p className='text-muted-foreground'>
+    //                     This quiz contains 10 questions specific to your industry and skills. 
+    //                     Take your time and choose the best answer for each question.
+    //                 </p>
+    //             </CardContent>
+    //             <CardFooter>
+    //                 <Button className="w-full" onClick={generateQuizFn}>Start Quiz</Button>
+    //             </CardFooter>
+    //         </Card>
+    //     )
+    // }
+
+    if (!quizData) {
+        return (
             <Card className="mx-2">
                 <CardHeader>
                     <CardTitle>Ready to test your knowledge</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <p className='text-muted-foreground'>
-                        This quiz contains 10 questions specific to your industry and skills. 
+                <CardContent className="space-y-4">
+                    <p className="text-muted-foreground">
+                        This quiz contains questions specific to your industry and skills.
                         Take your time and choose the best answer for each question.
                     </p>
+
+                    <div className="space-y-4">
+                        <Label htmlFor="numQuestions">Number of Questions</Label>
+                        <input
+                            id="numQuestions"
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={numQuestions}
+                            onChange={(e) => setNumQuestions(Number(e.target.value))}
+                            className="w-full border rounded-md px-3 py-2 text-sm bg-background"
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <Label htmlFor="topic">Topic (optional)</Label>
+                        <input
+                            id="topic"
+                            type="text"
+                            placeholder="e.g. React Hooks, System Design, SQL..."
+                            value={topic}
+                            onChange={(e) => setTopic(e.target.value)}
+                            className="w-full border rounded-md px-3 py-2 text-sm bg-background"
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <Label>Difficulty Level</Label>
+                        <RadioGroup
+                            value={difficulty}
+                            onValueChange={setDifficulty}
+                            className="flex gap-4"
+                        >
+                            {["Easy", "Medium", "Hard"].map((level) => (
+                                <div className="flex items-center space-x-2" key={level}>
+                                    <RadioGroupItem value={level} id={level} />
+                                    <Label htmlFor={level}>{level}</Label>
+                                </div>
+                            ))}
+                        </RadioGroup>
+                    </div>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" onClick={generateQuizFn}>Start Quiz</Button>
+                    <Button
+                        className="w-full"
+                        onClick={() => generateQuizFn(numQuestions, topic, difficulty)}
+                    >
+                        Start Quiz
+                    </Button>
                 </CardFooter>
             </Card>
-        )
+        );
     }
+
+    // if block above is a new feature
 
     const question = quizData[currentQuestion];
 

@@ -39,30 +39,49 @@ export const generateAIInsights = async (industry) => {
 
 export async function getIndustryInsights(){
     const { userId } = await auth();
-        if (!userId) throw new Error("Unauthorized");
-    
-        const user = await db.user.findUnique({
-            where:{
-                clerkUserId: userId,
-            },
-            include: {
-                industryInsight: true,
-            }
-        });
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+        where:{
+            clerkUserId: userId,
+        },
+        include: {
+            industryInsight: true,
+        }
+    });
     
     if(!user) throw new Error("User not found");
     
-    if (!user.industryInsight){
+    const isOverdue = user.industryInsight && new Date() >= new Date(user.industryInsight.nextUpdate);
+
+    if (!user.industryInsight || isOverdue){
         const insights = await generateAIInsights(user.industry);
 
-        const industryInsight = await db.industryInsight.create({
-            data: { // ai generated values
-                industry: user.industry,
-                ...insights,
-                nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        // const industryInsight = await db.industryInsight.create({
+        //     data: { // ai generated values
+        //         industry: user.industry,
+        //         ...insights,
+        //         nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        //     },
+        // });
+        // return industryInsight;
+
+        const updatedInsight = await db.industryInsight.upsert({
+            where: { industry: user.industry }, // Ensure industry is unique or use user.industryInsight.id
+            update: {
+              ...insights,
+              lastUpdated: new Date(),
+              nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            },
+            create: {
+              industry: user.industry,
+              ...insights,
+              lastUpdated: new Date(),
+              nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             },
         });
-        return industryInsight;
+
+        return updatedInsight;
     }
 
     return user.industryInsight;
