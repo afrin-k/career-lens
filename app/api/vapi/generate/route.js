@@ -9,7 +9,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  try {
+  try {ß
    
     const body = await request.json();
     const { type, role, level, techstack, amount } = body;
