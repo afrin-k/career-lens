@@ -62,7 +62,6 @@ export default function ResumeBuilder({ initialContent }) {
     if (initialContent) setActiveTab("preview");
   }, [initialContent]);
 
-  // Update preview content when form values change
   useEffect(() => {
     if (activeTab === "edit") {
       const newContent = getCombinedContent();
@@ -70,7 +69,6 @@ export default function ResumeBuilder({ initialContent }) {
     }
   }, [formValues, activeTab]);
 
-  // Handle save result
   useEffect(() => {
     if (saveResult && !isSaving) {
       toast.success("Resume saved successfully!");
@@ -111,76 +109,50 @@ export default function ResumeBuilder({ initialContent }) {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // const generatePDF = async () => {
-  //   setIsGenerating(true);
-  //   try {
-  //     const element = document.getElementById("resume-pdf");
-  //     const opt = {
-  //       margin: [15, 15],
-  //       filename: "resume.pdf",
-  //       image: { type: "jpeg", quality: 0.98 },
-  //       html2canvas: { scale: 2 },
-  //       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-  //     };
+  const generatePDF = async () => {
+    setIsGenerating(true);
+    try {
+      const html2canvasPro = (await import("html2canvas-pro")).default;
+      const { jsPDF } = await import("jspdf");
 
-  //     await html2pdf().set(opt).from(element).save();
-  //   } catch (error) {
-  //     console.error("PDF generation error:", error);
-  //   } finally {
-  //     setIsGenerating(false);
-  //   }
-  // };
+      const element = document.getElementById("resume-pdf");
+      if (!element) {
+        toast.error("Resume preview not found.");
+        return;
+      }
 
-const generatePDF = async () => {
-  setIsGenerating(true);
-  try {
-    // 1. Dynamically import the Pro canvas and jsPDF
-    const html2canvasPro = (await import("html2canvas-pro")).default;
-    const { jsPDF } = await import("jspdf");
+      const canvas = await html2canvasPro(element, {
+        scale: 2, // High resolution
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
 
-    const element = document.getElementById("resume-pdf");
-    if (!element) {
-      toast.error("Resume preview not found.");
-      return;
-    }
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
 
-    // 2. STEP 1: Convert HTML to Image using html2canvas-pro
-    // This handles the modern CSS (oklch/lab) safely
-    const canvas = await html2canvasPro(element, {
-      scale: 2, // High resolution
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
-    });
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    // 3. STEP 2: Convert Image to PDF using jsPDF
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    // Add the image to the PDF (Position 0,0)
-    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-
-    // 4. STEP 3: Download
-    pdf.save("resume.pdf");
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
     
-    toast.success("PDF downloaded successfully!");
-  } catch (error) {
-    console.error("PDF generation error:", error);
-    toast.error("Failed to generate PDF. Check the console for details.");
-  } finally {
-    setIsGenerating(false);
-  }
-};
+      pdf.save("resume.pdf");
+
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error("Failed to generate PDF. Check the console for details.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -236,7 +208,7 @@ const generatePDF = async () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className='flex flex-col'>
         <TabsList>
           <TabsTrigger value="edit">Form</TabsTrigger>
           <TabsTrigger value="preview">Markdown</TabsTrigger>

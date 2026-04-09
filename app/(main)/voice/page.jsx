@@ -22,7 +22,7 @@ const VoicePage = async () => {
       </section>
       
       <section className='flex flex-col gap-6 mt-8'>
-        <h2>Your Past Interviews</h2>
+        <h1 className='gradient-title text-3xl'>Your Interviews</h1>
         <div className='interviews-section'>
           {interviews.length > 0 ? (
             interviews.map((interview) => (

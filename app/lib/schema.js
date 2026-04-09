@@ -75,3 +75,17 @@ export const voiceSchema = z.object({
     z.number().min(3, "Minimum 3 questions").max(15, "Maximum 10 questions")
   ),
 });
+
+export const voiceFeedbackSchema = z.object({
+  totalScore: z.number().min(0).max(100),
+  categoryScores: z.array(
+    z.object({
+      name: z.string(),
+      score: z.number().min(0).max(100),
+      comment: z.string(),
+    })
+  ),
+  strengths: z.array(z.string()),
+  areasForImprovement: z.array(z.string()),
+  finalAssessment: z.string(),
+});

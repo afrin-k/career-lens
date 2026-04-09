@@ -33,6 +33,7 @@ model User {
   resume          Resume?
   coverLetter     CoverLetter[]
   voiceInterviews VoiceInterview[]
+  voiceFeedback   VoiceFeedback[]
 }
 
 model IndustryInsight {
@@ -122,23 +123,40 @@ model VoiceInterview {
   role      String
   level     String
   techstack String[]
-  type      String // technical, behavioral, etc.
+  type      String
 
   // Content fields
-  questions  String[] // The generated questions from Gemini
-  transcript Json[] // Array of {role: "user" | "assistant", content: string}
+  questions  String[]
+  transcript Json[]
 
-  // Feedback & Scoring
-  feedback       String? @db.Text
-  score          Float? // Overall performance score
-  categoryScores Json? // { communication: 8, technical: 7, etc }
-
-  status     InterviewStatus @default(COMPLETED)
+  finalized  Boolean @default(false)
+  status     InterviewStatus @default(STARTED)
   coverImage String?
+
+  feedback VoiceFeedback?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
+}
+
+model VoiceFeedback {
+  id          String @id @default(cuid())
+  interviewId String @unique
+  userId      String
+
+  interview VoiceInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  totalScore           Int
+  categoryScores       Json[]  // [{name, score, comment}]
+  strengths            String[]
+  areasForImprovement  String[]
+  finalAssessment      String  @db.Text
+
+  createdAt DateTime @default(now())
   @@index([userId])
 }
 

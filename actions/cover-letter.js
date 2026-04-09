@@ -5,7 +5,35 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+
+async function generateWithRetry(prompt, retries = 4, baseDelayMs = 1500) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const result = await model.generateContent(prompt);
+            return result;
+        } catch (error) {
+            const status = error?.status ?? error?.httpStatus;
+            const message = error?.message ?? "";
+            const isRetryable =
+                status === 503 ||
+                status === 429 ||
+                status === 500 ||
+                message.includes("503") ||
+                message.includes("429") ||
+                message.includes("overloaded") ||
+                message.includes("rate limit");
+
+            if (isRetryable && i < retries - 1) {
+                const wait = baseDelayMs * Math.pow(1.8, i); // 1.5s → 2.7s → 4.86s → ...
+                console.warn(`Gemini ${status ?? "error"} — retrying in ${Math.round(wait)}ms (attempt ${i + 1}/${retries})`);
+                await new Promise((res) => setTimeout(res, wait));
+                continue;
+            }
+            throw error;
+        }
+    }
+}
 
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
@@ -44,7 +72,7 @@ export async function generateCoverLetter(data) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await generateWithRetry(prompt);
     const content = result.response.text().trim();
 
     const coverLetter = await db.coverLetter.create({

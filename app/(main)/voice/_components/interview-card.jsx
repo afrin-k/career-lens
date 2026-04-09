@@ -1,54 +1,98 @@
-import React from 'react'
-import dayjs from 'dayjs';
-import Image from 'next/image';
-import { getRandomInterviewCover } from '@/lib/utils';
-import { Button } from "@/components/ui/button";
-import Link from 'next/link';
-import DisplayTechIcons from './display-tech-icons';
+"use client";
 
-const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt }) => {
-    const feedback = null; 
-    
+import React from 'react';
+import dayjs from 'dayjs';
+import Link from 'next/link';
+import { 
+  Card, 
+  CardContent, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Calendar, 
+  ChevronRight, 
+  ClipboardCheck, 
+  Clock, 
+  Trophy 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const InterviewCard = ({ id, userId, role, type, techstack, createdAt, feedback }) => {
     const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY');
     
+    const isTaken = !!feedback;
+
     return (
-      <div className='card-border w-90 max-sm:w-full min-h-96'>
-        <div className='card-interview'>
-            <div>
-                <div className='absolute top-0 right-0 w-fit px-4 py-2 rounded-bl-lg bg-light-600'>
-                    <p className='badge-text'>{normalizedType}</p>
-                </div>
-                <Image src={getRandomInterviewCover()} alt="cover-image" width={90} height={90} className='rounded-full object-fit size-[90px]' />
-                <h3 className='mt-5 capitalize'>{role} Interview</h3>
-                <div className='flex flex-row gap-5 mt-3'>
-                    <div className='flex flex-row gap-2'>
-                        <Image src="/calendar.svg" alt='calendar' width={22} height={22} />
-                        <p>{formattedDate}</p>
+      <Card className="flex flex-col h-full hover:border-primary/50 transition-colors duration-300">
+        <CardHeader className="pb-3">
+            <div className="flex justify-between items-start mb-2">
+                <Badge variant="secondary" className="font-semibold uppercase tracking-wider text-[10px]">
+                    {normalizedType}
+                </Badge>
+                {isTaken && (
+                    <div className="flex items-center gap-1 text-green-500">
+                        <Trophy className="h-4 w-4" />
+                        <span className="text-sm font-bold">{feedback.totalScore}/100</span>
                     </div>
-                    <div className='flex flex-row gap-2 items-center'>
-                        <Image src="/star.svg" alt='star' width={22} height={22}/>
-                        <p>{feedback?.totalScore || '---'}/100</p>
+                )}
+            </div>
+            <CardTitle className="text-xl capitalize leading-tight">
+                {role} <span className="text-muted-foreground font-normal">Interview</span>
+            </CardTitle>
+        </CardHeader>
+
+        <CardContent className="grow">
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formattedDate}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        15-20 Mins
                     </div>
                 </div>
-                <p className='line-clamp-2 mt-5'>
-                {feedback?.finalAssessment || "You haven't taken the interview yet. Take it now to improve your skills!"}
+
+                <div className="flex flex-wrap gap-1.5">
+                    {techstack?.slice(0, 4).map((tech) => (
+                        <span key={tech} className="text-[11px] px-2 py-0.5 bg-muted rounded-md text-muted-foreground border border-border/50">
+                            {tech}
+                        </span>
+                    ))}
+                    {techstack?.length > 4 && <span className="text-[11px] text-muted-foreground">+{techstack.length - 4} more</span>}
+                </div>
+
+                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mt-2 border-l-2 border-muted pl-3">
+                    {feedback?.finalAssessment || "Ready to begin your practice session? Start now to receive an AI-powered evaluation."}
                 </p>
             </div>
-            <div className='flex flex-row justify-between'>
-                <DisplayTechIcons techStack={techstack}/>
-                <Button className='btn-primary' asChild>
-                    <Link href={feedback
-                        ? `/vinterview/${interviewId}/feedback`
-                        : `/vinterview/${interviewId}`
-                    }> 
-                        {feedback ? "Check Feedback" : "View Interview"}
-                    </Link>
-                </Button>
-            </div>
-        </div>
-      </div>
+        </CardContent>
+
+        <CardFooter className="pt-0">
+            <Button 
+                className={cn(
+                    "w-full transition-all group",
+                    isTaken ? "variant-outline border-primary/20 hover:bg-primary/10" : "btn-primary"
+                )}
+                asChild
+            >
+                <Link href={isTaken
+                    ? `/voice/vinterview/${id}/feedback`
+                    : `/voice/vinterview/${id}`
+                }> 
+                    {isTaken ? "Review Performance" : "Begin Assessment"}
+                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+            </Button>
+        </CardFooter>
+      </Card>
     )
 }
 
-export default InterviewCard
+export default InterviewCard;

@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react'
 import { BarLoader } from 'react-spinners';
 import { toast } from 'sonner';
 import QuizResult from './quiz-result';
+import { cn } from "@/lib/utils";
 
 const Quiz = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -161,15 +162,28 @@ const Quiz = () => {
                             value={difficulty}
                             onValueChange={setDifficulty}
                             className="flex gap-4"
+                            defaultValue="Easy"
                         >
-                            {["Easy", "Medium", "Hard"].map((level) => (
-                                <div className="flex items-center space-x-2" key={level}>
-                                    <RadioGroupItem value={level} id={level} />
-                                    <Label htmlFor={level}>{level}</Label>
+                            {["Easy", "Medium", "Hard"].map((lvl) => (
+                                <div className="flex items-center space-x-2 cursor-pointer" key={lvl}>
+                                    <RadioGroupItem
+                                        value={lvl}
+                                        id={`difficulty-${lvl}`}
+                                    />
+                                    <Label
+                                        htmlFor={`difficulty-${lvl}`}
+                                        className={cn(
+                                            "cursor-pointer",
+                                            difficulty === lvl && "text-primary font-semibold"
+                                        )}
+                                    >
+                                        {lvl}
+                                    </Label>
                                 </div>
                             ))}
                         </RadioGroup>
                     </div>
+
                 </CardContent>
                 <CardFooter>
                     <Button

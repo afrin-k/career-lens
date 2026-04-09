@@ -1,4 +1,4 @@
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { ClerkLoaded, Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
@@ -67,20 +67,22 @@ const Header = async () => {
                     </SignInButton>
                 </Show>
                 <Show when="signed-in">
-                    <UserButton 
-                    appearance={{
-                        elements:{
-                            avatarBox: 'w-10 h-10',
-                            userButtonPopoverCard: 'shadow-xl',
-                            userPreviewMainIdentifier: 'font-semibold',
-                        },
-                    }}
-                    afterSignOutUrl='/'
-                    />
+                    <ClerkLoaded>
+                        <UserButton 
+                        appearance={{
+                            elements:{
+                                avatarBox: 'w-10 h-10',
+                                userButtonPopoverCard: 'shadow-xl',
+                                userPreviewMainIdentifier: 'font-semibold',
+                            },
+                        }}
+                        afterSignOutUrl='/'
+                        />
+                    </ClerkLoaded>
                 </Show>
             </div>
         </nav>
-          </header>
+    </header>
   )
 }
 
